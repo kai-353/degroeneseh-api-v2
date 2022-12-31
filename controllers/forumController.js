@@ -8,9 +8,9 @@ const moment = require("moment");
 moment.locale("nl");
 
 const newPost = asyncHandler(async (req, res) => {
-  const { title, body } = req.body;
+  const { title, body, category } = req.body;
 
-  if (!title || !body) {
+  if (!title || !body || !category) {
     res.status(400);
     throw new Error("Please add all fields");
   }
@@ -18,6 +18,7 @@ const newPost = asyncHandler(async (req, res) => {
   const post = await Post.create({
     title,
     body,
+    category,
     posted_by_id: req.user._id,
   });
 
@@ -99,6 +100,7 @@ const getPosts = asyncHandler(async (req, res) => {
       body: post.body,
       posted_by_id: post.posted_by_id,
       posted_by: user.name,
+      category: post.category,
       createdAt: moment(post.createdAt).fromNow(),
       image_url: user.image_url,
     });
@@ -131,6 +133,7 @@ const getPost = asyncHandler(async (req, res) => {
     createdAt: moment(post.createdAt).fromNow(),
     image_url: user.image_url,
     processed: post.processed,
+    category: post.category,
     comments: [],
   };
 

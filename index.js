@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/forum", require("./routes/forum"));
 app.use("/api/documents", require("./routes/documents"));
-// app.use("/api/admin", require("./routes/admin"));
+app.use("/api/admin", require("./routes/admin"));
 
 app.use(errorHandler);
 
