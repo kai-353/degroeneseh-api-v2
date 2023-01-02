@@ -13,6 +13,10 @@ const memberSchema = mongoose.Schema({
     type: String,
     required: [true, "Please add a job"],
   },
+  id: {
+    type: Number,
+    default: 2,
+  },
 });
 
 module.exports = mongoose.model("Member", memberSchema);

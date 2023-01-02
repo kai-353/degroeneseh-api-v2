@@ -130,6 +130,64 @@ const changeImageURL = asyncHandler(async (req, res) => {
   }
 });
 
+const addFav = asyncHandler(async (req, res) => {
+  const { pid } = req.body;
+
+  if (!pid) {
+    res.status(400);
+    throw new Error("No post id found in body");
+  }
+
+  const user = await User.updateOne(
+    { _id: req.user._id },
+    {
+      $push: {
+        favorites: pid,
+      },
+    }
+  );
+
+  if (user) {
+    if (user.matchedCount == 0) {
+      res.status(400);
+      throw new Error("User doesn't exist");
+    }
+    res.status(201).json(user);
+  } else {
+    res.status(500);
+    throw new Error("Something went wrong");
+  }
+});
+
+const remFav = asyncHandler(async (req, res) => {
+  const { pid } = req.body;
+
+  if (!pid) {
+    res.status(400);
+    throw new Error("No post id found in body");
+  }
+
+  const user = await User.updateOne(
+    { _id: req.user._id },
+    {
+      $pullAll: {
+        favorites: pid,
+      },
+    }
+  );
+
+  if (user) {
+    if (user.matchedCount == 0) {
+      res.status(400);
+      throw new Error("User doesn't exist");
+    }
+    res.status(201).json(user);
+  } else {
+    res.status(500);
+    throw new Error("Something went wrong");
+  }
+});
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
@@ -142,4 +200,6 @@ module.exports = {
   getMe,
   getId,
   changeImageURL,
+  addFav,
+  remFav,
 };
