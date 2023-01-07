@@ -7,6 +7,7 @@ const {
   getCategories,
   getAmountOfPosts,
   getMyPosts,
+  getFavorites,
 } = require("../controllers/forumController");
 const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
@@ -19,5 +20,6 @@ router.get("/posts/:id", getPost);
 router.get("/categories", getCategories);
 router.get("/post_count", getAmountOfPosts);
 router.get("/myposts", protect, getMyPosts);
+router.get("/favorites", protect, getFavorites);
 
 module.exports = router;

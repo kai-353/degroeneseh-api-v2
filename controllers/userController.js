@@ -170,7 +170,7 @@ const remFav = asyncHandler(async (req, res) => {
   const user = await User.updateOne(
     { _id: req.user._id },
     {
-      $pullAll: {
+      $pull: {
         favorites: pid,
       },
     }

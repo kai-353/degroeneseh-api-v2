@@ -8,7 +8,7 @@ const moment = require("moment");
 moment.locale("nl");
 
 const newPost = asyncHandler(async (req, res) => {
-  const { title, body, category } = req.body;
+  const { title, body, category, file_url } = req.body;
 
   if (!title || !body || !category) {
     res.status(400);
@@ -20,6 +20,7 @@ const newPost = asyncHandler(async (req, res) => {
     body,
     category,
     posted_by_id: req.user._id,
+    file_url: file_url ? file_url : "",
   });
 
   if (post) {
@@ -32,7 +33,7 @@ const newPost = asyncHandler(async (req, res) => {
 });
 
 const newComment = asyncHandler(async (req, res) => {
-  const { body, id } = req.body;
+  const { body, id, file_url } = req.body;
 
   if (!body || !id) {
     res.status(400);
@@ -51,6 +52,7 @@ const newComment = asyncHandler(async (req, res) => {
         comments: {
           body,
           posted_by_id: req.user._id,
+          file_url: file_url ? file_url : "",
           createdAt: Date.now(),
         },
       },
@@ -85,6 +87,7 @@ const getPosts = asyncHandler(async (req, res) => {
     .limit(6)
     .select("-processed")
     .select("-comments")
+    .select("-file_url")
     .sort("-createdAt");
 
   const postArray = [];
@@ -134,6 +137,7 @@ const getPost = asyncHandler(async (req, res) => {
     image_url: user.image_url,
     processed: post.processed,
     category: post.category,
+    file_url: post.file_url,
     comments: [],
   };
 
@@ -146,6 +150,7 @@ const getPost = asyncHandler(async (req, res) => {
       body: comment.body,
       posted_by_id: comment.posted_by_id,
       posted_by: comment_author.name,
+      file_url: comment.file_url ? comment.file_url : "",
       createdAt: moment(comment.createdAt).fromNow(),
       image_url: comment_author.image_url,
     });
@@ -202,6 +207,36 @@ const getMyPosts = asyncHandler(async (req, res) => {
   res.status(200).json(posts);
 });
 
+const getFavorites = asyncHandler(async (req, res) => {
+  const posts = await Post.find()
+    .where("_id")
+    .in(req.user.favorites)
+    .select("-processed")
+    .select("-comments")
+    .sort("-createdAt");
+
+  const postArray = [];
+
+  for (let i = 0; i < posts.length; i++) {
+    const post = posts[i];
+
+    const user = await User.findById(post.posted_by_id);
+
+    postArray.push({
+      _id: post._id,
+      title: post.title,
+      body: post.body,
+      posted_by_id: post.posted_by_id,
+      posted_by: user.name,
+      category: post.category,
+      createdAt: moment(post.createdAt).fromNow(),
+      image_url: user.image_url,
+    });
+  }
+
+  res.status(200).json(postArray);
+});
+
 module.exports = {
   newPost,
   newComment,
@@ -210,4 +245,5 @@ module.exports = {
   getCategories,
   getAmountOfPosts,
   getMyPosts,
+  getFavorites,
 };

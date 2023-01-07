@@ -26,6 +26,10 @@ const postSchema = mongoose.Schema(
       type: String,
       required: [true, "No category specified"],
     },
+    file_url: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
