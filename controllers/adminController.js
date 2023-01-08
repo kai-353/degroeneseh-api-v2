@@ -1,5 +1,7 @@
 const expressAsyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const File = require("../models/fileModel");
 
@@ -64,9 +66,41 @@ const createFile = expressAsyncHandler(async (req, res) => {
   throw new Error("Invalid data");
 });
 
+const changePass = expressAsyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Please attach an email and a password");
+  }
+
+  const userExists = await User.find({ email: email });
+
+  if (!userExists) {
+    res.status(400);
+    throw new Error("No user found with email");
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const user = await User.updateOne(
+    { email: email },
+    { $set: { password: hashedPassword } }
+  );
+
+  if (user.modifiedCount == 0) {
+    res.status(400);
+    throw new Error("Password is the same");
+  }
+
+  res.status(200).json({ message: "Password succesfully changed" });
+});
+
 module.exports = {
   notApproved,
   approvePost,
   deletePost,
   createFile,
+  changePass,
 };
