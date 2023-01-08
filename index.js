@@ -1,6 +1,7 @@
 const express = require("express");
 const colors = require("colors");
 const dotenv = require("dotenv").config();
+const path = require("path");
 const { errorHandler } = require("./middleware/errorMiddleware");
 
 const connectDB = require("./config/db");
@@ -17,10 +18,10 @@ app.use("/api/users", require("./routes/users"));
 app.use("/api/forum", require("./routes/forum"));
 app.use("/api/documents", require("./routes/documents"));
 app.use("/api/admin", require("./routes/admin"));
-app.get("/assets/documents", (req, res) => {
+app.get("/assets/documents/:resource", (req, res) => {
   res.sendFile(path.join(__dirname, "/assets/documents/", req.params.resource));
 });
-app.get("/assets/profiles", (req, res) => {
+app.get("/assets/profiles/:resource", (req, res) => {
   res.sendFile(path.join(__dirname, "/assets/profiles/", req.params.resource));
 });
 
