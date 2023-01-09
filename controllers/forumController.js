@@ -73,14 +73,14 @@ const newComment = asyncHandler(async (req, res) => {
 });
 
 const getPosts = asyncHandler(async (req, res) => {
-  const { page } = req.query;
+  const { page, category } = req.query;
 
   if (!page || !page == typeof "number" || !(page > 0)) {
     res.status(400);
     throw new Error("Please add a (valid) page number");
   }
 
-  const posts = await Post.find()
+  const query = Post.find()
     .where("processed")
     .equals(true)
     .skip((page - 1) * 6)
@@ -89,6 +89,12 @@ const getPosts = asyncHandler(async (req, res) => {
     .select("-comments")
     .select("-file_url")
     .sort("-createdAt");
+
+  if (category && category !== "") {
+    query.where("category").equals(category);
+  }
+
+  const posts = await query.exec();
 
   const postArray = [];
 
@@ -105,6 +111,7 @@ const getPosts = asyncHandler(async (req, res) => {
       posted_by: user.name,
       category: post.category,
       createdAt: moment(post.createdAt).fromNow(),
+      functie: user.functie,
       image_url: user.image_url,
     });
   }
@@ -138,6 +145,7 @@ const getPost = asyncHandler(async (req, res) => {
     processed: post.processed,
     category: post.category,
     file_url: post.file_url,
+    functie: user.functie,
     comments: [],
   };
 
@@ -153,6 +161,7 @@ const getPost = asyncHandler(async (req, res) => {
       file_url: comment.file_url ? comment.file_url : "",
       createdAt: moment(comment.createdAt).fromNow(),
       image_url: comment_author.image_url,
+      functie: comment_author.functie,
     });
   }
 
@@ -193,7 +202,16 @@ const getCategories = asyncHandler(async (req, res) => {
 });
 
 const getAmountOfPosts = asyncHandler(async (req, res) => {
-  const amount = await Post.count({ processed: true });
+  const { category } = req.query;
+
+  const query = Post.count({ processed: true });
+
+  if (category && category !== "") {
+    query.where("category").equals(category);
+  }
+
+  const amount = await query.exec();
+
   res.status(200).json({ count: amount });
 });
 

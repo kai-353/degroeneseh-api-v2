@@ -19,6 +19,10 @@ const userSchema = mongoose.Schema(
       type: String,
       required: false,
     },
+    ziekenhuis: {
+      type: String,
+      default: "",
+    },
     image_url: {
       type: String,
       default: "/default_image.png",
