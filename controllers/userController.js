@@ -17,9 +17,9 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("Wachtwoorden matchen niet");
   }
 
-  if (name.length < 5) {
+  if (name.length < 5 || name.length > 35) {
     res.status(400);
-    throw new Error("Naam moet minimaal 5 karakters lang zijn");
+    throw new Error("Naam moet tussen 5 en 35 karakters lang zijn");
   }
 
   // Check if user exists
@@ -81,7 +81,7 @@ const loginUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error("Invalid credentials");
+    throw new Error("Verkeerd email en/of wachtwoord");
   }
 });
 
@@ -203,14 +203,14 @@ const remFav = asyncHandler(async (req, res) => {
 const updateMe = asyncHandler(async (req, res) => {
   const { name, functie, ziekenhuis } = req.body;
 
-  if (!name || !functie || !ziekenhuis) {
+  if (!name || !functie) {
     res.status(400);
-    throw new Error("Please send all fields");
+    throw new Error("Vul aub een naam en/of functie in");
   }
 
-  if (name.length < 5) {
+  if (name.length < 5 || name.length > 35) {
     res.status(400);
-    throw new Error("Naam moet minimaal 5 karakters lang zijn");
+    throw new Error("Naam moet tussen 5 en 35 karakters zijn");
   }
 
   const userExists = await User.findOne()
@@ -221,7 +221,9 @@ const updateMe = asyncHandler(async (req, res) => {
 
   if (userExists) {
     res.status(400);
-    throw new Error("Naam bestaat al");
+    throw new Error(
+      "Er bestaat al een account met deze naam. Als dit uw naam is neem dan contact op via de contact pagina."
+    );
   }
 
   const user = await User.updateOne(
@@ -266,10 +268,10 @@ const updatePassword = asyncHandler(async (req, res) => {
 
     if (user.modifiedCount == 0) {
       res.status(400);
-      throw new Error("Password is the same");
+      throw new Error("Wachtwoord is hetzelfde");
     }
 
-    res.status(200).json({ message: "Password succesfully changed" });
+    res.status(200).json({ message: "Wachtwoord is veranderd" });
   } else {
     res.status(400);
     throw new Error("Invalid credentials");
