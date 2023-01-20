@@ -255,6 +255,76 @@ const getFavorites = asyncHandler(async (req, res) => {
   res.status(200).json(postArray);
 });
 
+const changePost = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("ID not valid");
+  }
+
+  const { body, category } = req.body;
+
+  if (!body && !category) {
+    res.status(400);
+    throw new Error("No changes found");
+  }
+
+  let update = {};
+
+  if (body) {
+    update.body = body;
+  }
+  if (category) {
+    update.category = category;
+  }
+
+  const changePostedBy = await Post.findById(req.params.id);
+
+  if (
+    !changePostedBy ||
+    changePostedBy.posted_by_id.toString() != req.user._id.toString()
+  ) {
+    console.log(changePostedBy.posted_by_id, req.user._id);
+    res.status(400);
+    throw new Error("You do not have permission to change this post");
+  }
+
+  const post = await Post.updateOne(
+    { _id: req.params.id },
+    {
+      $set: update,
+    }
+  );
+
+  if (post) {
+    res.status(201).json(post);
+  } else {
+    res.status(500);
+    throw new Error("Something went wrong");
+  }
+});
+
+const deletePost = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("ID not valid");
+  }
+
+  const changePostedBy = await Post.findById(req.params.id);
+
+  if (
+    !changePostedBy ||
+    changePostedBy.posted_by_id.toString() != req.user._id.toString()
+  ) {
+    console.log(changePostedBy.posted_by_id, req.user._id);
+    res.status(400);
+    throw new Error("You do not have permission to change this post");
+  }
+
+  await Post.deleteOne({ _id: req.params.id });
+
+  res.status(204).json({ message: "Post deleted succesfully" });
+});
+
 module.exports = {
   newPost,
   newComment,
@@ -264,4 +334,6 @@ module.exports = {
   getAmountOfPosts,
   getMyPosts,
   getFavorites,
+  changePost,
+  deletePost,
 };
