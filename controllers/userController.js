@@ -274,7 +274,7 @@ const updatePassword = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Wachtwoord is veranderd" });
   } else {
     res.status(400);
-    throw new Error("Invalid credentials");
+    throw new Error("Uw wachtwoord is onjuist");
   }
 });
 

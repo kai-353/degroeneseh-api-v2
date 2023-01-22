@@ -62,7 +62,7 @@ const newComment = asyncHandler(async (req, res) => {
   if (post) {
     if (post.matchedCount == 0) {
       res.status(400);
-      throw new Error("Post doesn't exist");
+      throw new Error("Post bestaat niet");
     }
 
     res.status(201).json(post);
@@ -265,7 +265,7 @@ const changePost = asyncHandler(async (req, res) => {
 
   if (!body && !category) {
     res.status(400);
-    throw new Error("No changes found");
+    throw new Error("Geen veranderingen gevonden");
   }
 
   let update = {};
