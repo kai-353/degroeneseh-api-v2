@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const File = require("../models/fileModel");
+const nodeMail = require("nodemailer");
 
 const notApproved = expressAsyncHandler(async (req, res) => {
   const posts = await Post.find({ processed: false });
@@ -97,10 +98,54 @@ const changePass = expressAsyncHandler(async (req, res) => {
   res.status(200).json({ message: "Password succesfully changed" });
 });
 
+async function sendContactMail(name, email, subject, message) {
+  const transporter = await nodeMail.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.MAIL_PASSWORD,
+    },
+  });
+  const mailOption = {
+    from: process.env.GMAIL_USER,
+    to: process.env.GMAIL_USER,
+    subject: subject,
+    html: `Nieuwe email van: ${email}<br>Naam: ${name}<br><br>${message}`,
+  };
+  try {
+    await transporter.sendMail(mailOption);
+    return Promise.resolve("Message Sent Successfully!");
+  } catch (error) {
+    console.log(error);
+    return Promise.reject(error);
+  }
+}
+
+const contactEmail = expressAsyncHandler(async (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  if (!name || !email || !subject || !message) {
+    res.status(400);
+    throw new Error("Vul aub alle velden in");
+  }
+
+  try {
+    await sendContactMail(name, email, subject, message);
+
+    res.status(201).json({ message: "Email verzonden" });
+  } catch (error) {
+    res.status(400);
+    throw new Error(
+      "Er is een fout opgetreden tijdens het versturen van deze email"
+    );
+  }
+});
+
 module.exports = {
   notApproved,
   approvePost,
   deletePost,
   createFile,
   changePass,
+  contactEmail,
 };

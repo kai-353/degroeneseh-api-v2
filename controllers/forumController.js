@@ -4,8 +4,32 @@ const Categorie = require("../models/categorieModel");
 const mongoose = require("mongoose");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
+const nodeMail = require("nodemailer");
 const moment = require("moment");
 moment.locale("nl");
+
+async function sendNewPostMail(name, title) {
+  const transporter = await nodeMail.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.MAIL_PASSWORD,
+    },
+  });
+  const mailOption = {
+    from: process.env.GMAIL_USER,
+    to: process.env.GMAIL_USER,
+    subject: "Nieuwe post",
+    html: `Er is een nieuwe post aangemaakt door '${name}' met titel '${title}'`,
+  };
+  try {
+    await transporter.sendMail(mailOption);
+    return Promise.resolve("Message Sent Successfully!");
+  } catch (error) {
+    console.log(error);
+    return Promise.reject(error);
+  }
+}
 
 const newPost = asyncHandler(async (req, res) => {
   const { title, body, category, file_url } = req.body;
@@ -24,6 +48,15 @@ const newPost = asyncHandler(async (req, res) => {
   });
 
   if (post) {
+    try {
+      await sendNewPostMail(req.user.name, title);
+    } catch (error) {
+      console.log("====================================");
+      console.log("Email for new post not sent");
+      console.log("====================================");
+      console.log(error);
+      console.log("====================================");
+    }
     res.status(201).json(post);
     return;
   }
